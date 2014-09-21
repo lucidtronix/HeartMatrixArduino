@@ -144,8 +144,8 @@ HeartMatrix :: HeartMatrix(int _dataPin , int _latchPin, int _clockPin){
 void HeartMatrix :: set_message(String text){
   cur_mode = 0;	
   message = text;
-  length = text.length()-1;
-  cur_index = 0;
+  length = text.length();
+  if(cur_index >= length) cur_index = 0;
 }
 
 void HeartMatrix :: set_scroll_wait(int wait){
@@ -356,8 +356,9 @@ void HeartMatrix :: displayer() {
 			else write_byte(cur_col+1+col_shift, font_5x7[char_index][cur_col]);
 		}
 		
-	  if(cur_col+7+col_shift < 10 && cur_col+7+col_shift > 1 ) write_byte(cur_col+7+col_shift, font_5x7[char_index_2][cur_col]);
-	  if(cur_col+13+col_shift < 10) write_byte(cur_col+13+col_shift, font_5x7[char_index_3][cur_col]);
+	  if(cur_col+7+col_shift < 10 && cur_col+7+col_shift > 1 && cur_index < length - 1) write_byte(cur_col+7+col_shift, font_5x7[char_index_2][cur_col]);
+	  if(cur_col+13+col_shift < 10 && cur_index < length - 2) write_byte(cur_col+13+col_shift, font_5x7[char_index_3][cur_col]);
+      //else write_byte(cur_col+13+col_shift, 0x00);
 	} else if (cur_mode == 1){
 	  cur_col++;
 	  if (cur_col >= 5) {

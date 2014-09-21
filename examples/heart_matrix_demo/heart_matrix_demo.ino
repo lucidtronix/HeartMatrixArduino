@@ -1,14 +1,25 @@
-/* LucidTronix Heart Matrix.
- * A volume visualizwer using the Heart Matrix's
- * on board LM386 amplifier chip and the electret microphone
- * See the tutorial at: 
- * http://lucidtronix.com/tutorials/35 */
- 
+/* LucidTronix Heart Matrix LEO LED Display.
+ * Demoing the heart matrix clock and sound sensor
+ * For instructions details and schematic, See:
+ * http://www.lucidtronix.com/tutorials/57
+ */
+#include <Wire.h>
 #include <MsTimer2.h>
 #include <HeartMatrix.h>
+#include <MCP79410.h>
 
 // dataPin is on 5, Latch is on 6, and clock is on 7
-HeartMatrix hm = HeartMatrix(5,6,7); 
+HeartMatrix hm = HeartMatrix(5,6,7);
+
+MCP79410 clock = MCP79410();
+
+int mode = 2;
+int num_modes = 3;
+unsigned long last_press = 0;
+
+// clock global variables
+String stime = "";
+unsigned int last_update = 0;
 
 // sound global variables
 const int buffer_size = 15;
@@ -28,17 +39,65 @@ void setup() {
    MsTimer2::set(1,displayer2);
    MsTimer2::start();
    for (int i = 0 ; i < num_cols; i++) volumes[i] = 8;
-   for (int i = 0 ; i < buffer_size; i++) noises[i] = 512;
-   hm.animate();
+   for (int i = 0 ; i < buffer_size; i++) noises[i] = random(300,612);
+   if(mode == 2) hm.set_message(" Hello I'm the Heart Matrix! ");
+   if(mode == 0) hm.animate();
+   
+   Wire.begin(); 
+   //clock.setDateTime(__DATE__,__TIME__);
 }
-
+  
 void loop() {
-  hm.on();
-  sound_display();
+  if(mode == 0) sound_display();
+  else if(mode == 1) clock_display();
+  else if(mode == 2) text_display();
+  check_buttons();
 }
 
-void displayer2(){  
+void displayer2(){
   hm.displayer();
+}
+
+void check_buttons(){
+ if(digitalRead(9) == HIGH && millis() - last_press > 250){
+   mode = ++mode % num_modes;
+   if(mode == 0) hm.animate();
+   if(mode == 2) hm.set_message(" Hello I'm the Heart Matrix! "); 
+   last_press = millis();
+ }
+ hm.set_scroll_wait(max(20, analogRead(0)/4)); 
+}
+
+void text_display(){
+  hm.on();  
+}
+void clock_display(){
+  hm.on();  
+  if (millis() - last_update > 1000){
+    stime = " ";
+    
+    byte a_hour = clock.hour24();
+    String a_hour_s = String(a_hour,HEX);
+    int hour_int = a_hour_s.toInt();
+    String ampm = "am  ";
+    if (hour_int >= 12){
+      ampm = "pm  ";
+      hour_int -= 12;
+      a_hour_s = String(hour_int);
+    }
+    if (a_hour == 0 || a_hour == 12 ) stime += String(12); 
+    else stime += a_hour_s;  
+    stime += ":";
+    byte a_min = clock.minute();
+    if (a_min < 10 ) stime += String(0);
+    stime += String(a_min,HEX);
+    stime += ":";
+    byte a_sec = clock.second();
+    if (a_sec < 10 ) stime += String(0);
+    stime += String(a_sec,HEX);
+    hm.set_message(stime+ampm );
+    last_update = millis();
+  }
 }
 
 void sound_display(){
@@ -71,7 +130,7 @@ void sound_display(){
      for (int j = volumes[i] ; j < 8; j++){
        hm.set_pixel(i, j, false);  
      }
-   }
+   }  
 }
 
 int average(int* array, int length){
