@@ -351,9 +351,9 @@ void HeartMatrix :: displayer() {
 	  }
 	  //write_byte(1, font_5x7[char_index][1]);
 		if(cur_col+1+col_shift < 6 && cur_col+1+col_shift > -1 ){
-			if ( cur_col+1+col_shift == 0 )write_byte(1, font_5x7[char_index][cur_col]);
-			else if (cur_col+1+col_shift == 1)write_byte(0, font_5x7[char_index][cur_col ]);
-			else write_byte(cur_col+1+col_shift, font_5x7[char_index][cur_col]);
+			//if ( cur_col+1+col_shift == 0 )write_byte(1, font_5x7[char_index][cur_col]);
+			//else if (cur_col+1+col_shift == 1)write_byte(0, font_5x7[char_index][cur_col ]);
+			write_byte(cur_col+1+col_shift, font_5x7[char_index][cur_col]);
 		}
 		
 	  if(cur_col+7+col_shift < 10 && cur_col+7+col_shift > 1 && cur_index < length - 1) write_byte(cur_col+7+col_shift, font_5x7[char_index_2][cur_col]);
