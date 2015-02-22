@@ -35,18 +35,18 @@ unsigned long max_var = 0;
 unsigned long min_var = 99999999;
 
 void setup() {
-   Serial.begin(9600);
-   MsTimer2::set(1,displayer2);
-   MsTimer2::start();
-   for (int i = 0 ; i < num_cols; i++) volumes[i] = 8;
-   for (int i = 0 ; i < buffer_size; i++) noises[i] = random(300,612);
-   if(mode == 2) hm.set_message(" Hello I'm the Heart Matrix! ");
-   if(mode == 0) hm.animate();
-   
-   Wire.begin(); 
-   //clock.setDateTime(__DATE__,__TIME__);
+  Serial.begin(9600);
+  MsTimer2::set(1,displayer2);
+  MsTimer2::start();
+  for (int i = 0 ; i < num_cols; i++) volumes[i] = 8;
+  for (int i = 0 ; i < buffer_size; i++) noises[i] = random(300,612);
+  if(mode == 2) hm.set_message(" Hello I'm the Heart Matrix! ");
+  if(mode == 0) hm.animate();
+
+  Wire.begin(); 
+  clock.setDateTime(__DATE__,__TIME__);
 }
-  
+
 void loop() {
   if(mode == 0) sound_display();
   else if(mode == 1) clock_display();
@@ -59,13 +59,13 @@ void displayer2(){
 }
 
 void check_buttons(){
- if(digitalRead(9) == HIGH && millis() - last_press > 250){
-   mode = ++mode % num_modes;
-   if(mode == 0) hm.animate();
-   if(mode == 2) hm.set_message(" Hello I'm the Heart Matrix! "); 
-   last_press = millis();
- }
- hm.set_scroll_wait(max(20, analogRead(0)/4)); 
+  if(digitalRead(9) == HIGH && millis() - last_press > 250){
+    mode = ++mode % num_modes;
+    if(mode == 0) hm.animate();
+    if(mode == 2) hm.set_message(" Hello I'm the Heart Matrix! "); 
+    last_press = millis();
+  }
+  hm.set_scroll_wait(max(20, analogRead(0)/4)); 
 }
 
 void text_display(){
@@ -75,9 +75,9 @@ void clock_display(){
   hm.on();  
   if (millis() - last_update > 1000){
     stime = " ";
-    
+
     byte a_hour = clock.hour24();
-    String a_hour_s = String(a_hour,HEX);
+    String a_hour_s = String(a_hour);
     int hour_int = a_hour_s.toInt();
     String ampm = "am  ";
     if (hour_int >= 12){
@@ -90,47 +90,47 @@ void clock_display(){
     stime += ":";
     byte a_min = clock.minute();
     if (a_min < 10 ) stime += String(0);
-    stime += String(a_min,HEX);
+    stime += String(a_min);
     stime += ":";
     byte a_sec = clock.second();
     if (a_sec < 10 ) stime += String(0);
-    stime += String(a_sec,HEX);
+    stime += String(a_sec);
     hm.set_message(stime+ampm );
     last_update = millis();
   }
 }
 
 void sound_display(){
-   // Get a value from the electret microphone   
-   noises[cur_index] = analogRead(mic_pin) ;
-   cur_index++;
-   if(cur_index == buffer_size) cur_index = 0;
-   // Control the scroll speed with a potentiometer on analog pin 0
-   delay_speed = max(10, (analogRead(0)/4));
-   
-   // Shift the waveform over one column
-   if (millis() - last_shift > delay_speed){
-     last_shift = millis();
-     unsigned int avg = average(noises, buffer_size);
-     unsigned long var = variance(noises, buffer_size);
-     max_var = max(var, max_var);
-     min_var = min(var, min_var);
-     var = map(var,min_var , max_var, 0, 9);
-     for (int i = 1 ; i < num_cols; i++){
+  // Get a value from the electret microphone   
+  noises[cur_index] = analogRead(mic_pin) ;
+  cur_index++;
+  if(cur_index == buffer_size) cur_index = 0;
+  // Control the scroll speed with a potentiometer on analog pin 0
+  delay_speed = max(10, (analogRead(0)/4));
+
+  // Shift the waveform over one column
+  if (millis() - last_shift > delay_speed){
+    last_shift = millis();
+    unsigned int avg = average(noises, buffer_size);
+    unsigned long var = variance(noises, buffer_size);
+    max_var = max(var, max_var);
+    min_var = min(var, min_var);
+    var = map(var,min_var , max_var, 0, 9);
+    for (int i = 1 ; i < num_cols; i++){
       volumes[i-1] = volumes[i];
-     }
-     volumes[num_cols-1] = var;
-   }
-   
-   // Write the wave form to LED display
-   for (int i = 0 ; i < num_cols; i++){
-     for (int j = 0 ; j < volumes[i]; j++){
-       hm.set_pixel(i, j, true);  
-     }
-     for (int j = volumes[i] ; j < 8; j++){
-       hm.set_pixel(i, j, false);  
-     }
-   }  
+    }
+    volumes[num_cols-1] = var;
+  }
+
+  // Write the wave form to LED display
+  for (int i = 0 ; i < num_cols; i++){
+    for (int j = 0 ; j < volumes[i]; j++){
+      hm.set_pixel(i, j, true);  
+    }
+    for (int j = volumes[i] ; j < 8; j++){
+      hm.set_pixel(i, j, false);  
+    }
+  }  
 }
 
 int average(int* array, int length){
@@ -152,3 +152,4 @@ unsigned long variance(int* array, int length){
   unsigned long var = sum / length;
   return var;	
 }
+
